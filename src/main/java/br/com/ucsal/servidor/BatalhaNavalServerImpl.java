@@ -13,6 +13,7 @@ public class BatalhaNavalServerImpl extends UnicastRemoteObject implements Batal
 
     @Override
     public String retornarString() throws RemoteException {
+        System.out.println("Chamada Recebida");
         return "Ola mundo";
     }
 }
