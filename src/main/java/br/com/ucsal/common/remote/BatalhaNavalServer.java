@@ -18,7 +18,7 @@ public interface BatalhaNavalServer extends Remote {
             PartidaIndisponivelException;
 
     void posicionarNavio(int id, TipoNavio tipoNavio, Posicao inicial, Direcao direcao) throws RemoteException,
-            JogadaInvalidaException;
+            JogadaInvalidaException, PartidaIndisponivelException;
 
     ResultadoTiro fazerJogada(int id, Posicao tiro) throws RemoteException,
             JogadaInvalidaException, NaoESuaVezException, PartidaIndisponivelException;
