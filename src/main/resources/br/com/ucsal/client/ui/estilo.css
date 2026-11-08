@@ -1,0 +1,109 @@
+/*
+ * Tema visual do cliente Batalha Naval.
+ * CSS do JavaFX: parecido com o da web, mas as propriedades começam com -fx-.
+ * Cores declaradas no .root viram "variáveis" usadas no resto do arquivo.
+ */
+
+.root {
+    -cor-fundo-1: #06142e;
+    -cor-fundo-2: #0c2d57;
+    -cor-cartao: rgba(10, 30, 60, 0.85);
+    -cor-borda: #1f4f86;
+    -cor-texto: #e6f0ff;
+    -cor-texto-suave: #8fb3de;
+    -cor-destaque: #22c3ee;
+    -cor-destaque-escuro: #0e9ac0;
+    -cor-erro: #ff6b6b;
+
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 14px;
+}
+
+/* Cor padrão de todo texto. Fica ANTES das classes específicas:
+   com a mesma especificidade, a regra que vem DEPOIS vence. */
+.label {
+    -fx-text-fill: -cor-texto;
+}
+
+/* Fundo de "mar profundo" */
+.fundo-oceano {
+    -fx-background-color: linear-gradient(to bottom, -cor-fundo-1, -cor-fundo-2);
+    -fx-padding: 24;
+}
+
+/* Painel central */
+.cartao {
+    -fx-background-color: -cor-cartao;
+    -fx-background-radius: 16;
+    -fx-border-color: -cor-borda;
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-padding: 32 36 28 36;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 30, 0.2, 0, 8);
+}
+
+.titulo {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+}
+
+.subtitulo {
+    -fx-text-fill: -cor-texto-suave;
+}
+
+.rotulo {
+    -fx-text-fill: -cor-texto-suave;
+    -fx-font-weight: bold;
+    -fx-min-width: 80;
+}
+
+/* Campos de texto */
+.text-field {
+    -fx-background-color: #0a1f3f;
+    -fx-text-fill: -cor-texto;
+    -fx-prompt-text-fill: #4f6f99;
+    -fx-background-radius: 8;
+    -fx-border-color: -cor-borda;
+    -fx-border-radius: 8;
+    -fx-padding: 8 10;
+    -fx-pref-width: 260;
+}
+
+.text-field:focused {
+    -fx-border-color: -cor-destaque;
+}
+
+.text-field:disabled {
+    -fx-opacity: 0.6;
+}
+
+/* Botão principal */
+.botao-primario {
+    -fx-background-color: -cor-destaque;
+    -fx-text-fill: #04203a;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-background-radius: 8;
+    -fx-padding: 10 0;
+    -fx-cursor: hand;
+}
+
+.botao-primario:hover {
+    -fx-background-color: -cor-destaque-escuro;
+}
+
+.botao-primario:disabled {
+    -fx-opacity: 0.5;
+}
+
+.mensagem-erro {
+    -fx-text-fill: -cor-erro;
+}
+
+.mensagem-ok {
+    -fx-text-fill: -cor-destaque;
+}
+
+.progress-indicator {
+    -fx-progress-color: -cor-destaque;
+}
