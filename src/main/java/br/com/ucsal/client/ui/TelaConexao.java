@@ -1,5 +1,7 @@
 package br.com.ucsal.client.ui;
 
+import br.com.ucsal.common.remote.BatalhaNavalServer;
+import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -11,17 +13,30 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+import java.rmi.ConnectException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.UnknownHostException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
 /**
  * Tela 1: o jogador informa onde está o servidor e o seu nome.
- * Nesta versão, só o visual + validação dos campos.
- * A conexão RMI entra na próxima etapa, dentro de conectar().
+ *
+ * Fluxo ao clicar em "Conectar":
+ *   1. valida os campos;
+ *   2. numa thread SEPARADA, pede ao RMI Registry o objeto "BatalhaNaval";
+ *   3. deu certo  -> guarda o stub no app e vai para a tela de espera;
+ *      deu errado -> mostra uma mensagem amigável.
  */
 public class TelaConexao {
+
+    // Precisa ser IGUAL ao nome usado em locateRegistry.rebind(...) no IniciarServidor
+    private static final String NOME_NO_REGISTRY = "BatalhaNaval";
 
     private final BatalhaNavalApp app;
     private final StackPane raiz = new StackPane();
 
-    // Os componentes são atributos porque conectar() precisa ler/alterar eles
     private final TextField campoHost = new TextField("localhost");
     private final TextField campoPorta = new TextField("1099");
     private final TextField campoNome = new TextField();
@@ -33,7 +48,6 @@ public class TelaConexao {
         this.app = app;
         montarLayout();
 
-        // Evento: o que acontece ao clicar (ou apertar Enter no nome)
         botaoConectar.setOnAction(e -> conectar());
         campoNome.setOnAction(e -> conectar());
     }
@@ -43,7 +57,7 @@ public class TelaConexao {
     }
 
     // ------------------------------------------------------------------
-    // Layout
+    // Layout (igual à versão anterior)
     // ------------------------------------------------------------------
 
     private void montarLayout() {
@@ -53,12 +67,10 @@ public class TelaConexao {
         Label subtitulo = new Label("Conecte-se ao servidor para entrar na partida");
         subtitulo.getStyleClass().add("subtitulo");
 
-        // Texto cinza que aparece quando o campo está vazio
         campoHost.setPromptText("ex.: localhost ou 192.168.0.10");
         campoPorta.setPromptText("1099");
         campoNome.setPromptText("Como quer ser chamado?");
 
-        // GridPane = tabela. addRow(linha, coluna0, coluna1)
         GridPane formulario = new GridPane();
         formulario.setHgap(12);
         formulario.setVgap(12);
@@ -67,26 +79,23 @@ public class TelaConexao {
         formulario.addRow(2, rotulo("Seu nome"), campoNome);
 
         botaoConectar.getStyleClass().add("botao-primario");
-        botaoConectar.setMaxWidth(Double.MAX_VALUE); // ocupa a largura toda
+        botaoConectar.setMaxWidth(Double.MAX_VALUE);
 
         carregando.setPrefSize(22, 22);
-        carregando.setVisible(false); // só aparece enquanto conecta
+        carregando.setVisible(false);
 
         labelMensagem.setWrapText(true);
 
-        // HBox = fila horizontal: [bolinha girando] [mensagem]
         HBox linhaStatus = new HBox(10, carregando, labelMensagem);
         linhaStatus.setAlignment(Pos.CENTER_LEFT);
         linhaStatus.setMinHeight(28);
 
-        // VBox = pilha vertical, com 18px de espaço entre os itens
         VBox cartao = new VBox(18, titulo, subtitulo, formulario, botaoConectar, linhaStatus);
         cartao.getStyleClass().add("cartao");
-        // Não deixa o cartão esticar até a borda da janela
         cartao.setMaxSize(420, Region.USE_PREF_SIZE);
 
         raiz.getStyleClass().add("fundo-oceano");
-        raiz.getChildren().add(cartao); // StackPane centraliza o cartão
+        raiz.getChildren().add(cartao);
     }
 
     private Label rotulo(String texto) {
@@ -96,7 +105,7 @@ public class TelaConexao {
     }
 
     // ------------------------------------------------------------------
-    // Ação do botão
+    // Conexão RMI
     // ------------------------------------------------------------------
 
     private void conectar() {
@@ -120,8 +129,75 @@ public class TelaConexao {
             return;
         }
 
-        // Provisório: na próxima etapa, aqui entra a conexão RMI
-        mostrarOk("Tudo certo! Conectaria em " + host + ":" + porta + " como " + nome + ".");
+        setOcupado(true);
+
+        /*
+         * CONCEITO: nunca fazer chamada de rede na thread do JavaFX.
+         * A "JavaFX Application Thread" desenha a tela e trata cliques.
+         * Se ela ficar esperando a rede, a janela congela ("Não está respondendo").
+         *
+         * Task = tarefa que roda o call() em OUTRA thread e depois executa
+         * setOnSucceeded / setOnFailed DE VOLTA na thread do JavaFX,
+         * onde é permitido mexer nos componentes da tela.
+         */
+        Task<BatalhaNavalServer> tarefa = new Task<>() {
+            @Override
+            protected BatalhaNavalServer call() throws Exception {
+                // getRegistry NÃO conecta ainda: só cria uma referência local.
+                Registry registry = LocateRegistry.getRegistry(host, porta);
+
+                // lookup é a primeira ida à rede: pergunta ao Registry pelo
+                // objeto "BatalhaNaval" e recebe de volta o STUB.
+                return (BatalhaNavalServer) registry.lookup(NOME_NO_REGISTRY);
+            }
+        };
+
+        // Rodam na thread do JavaFX -> podem mexer na tela
+        tarefa.setOnSucceeded(e -> {
+            app.setServidor(tarefa.getValue());
+            app.setNomeJogador(nome);
+            app.mostrarTela(new TelaAguardando(app).getRaiz());
+        });
+
+        tarefa.setOnFailed(e -> {
+            setOcupado(false);
+            mostrarErro(traduzirErro(tarefa.getException(), host, porta));
+        });
+
+        Thread thread = new Thread(tarefa, "conexao-rmi");
+        thread.setDaemon(true); // não impede o programa de fechar
+        thread.start();
+    }
+
+    /** Converte as exceções do RMI em mensagens que o jogador entende. */
+    private String traduzirErro(Throwable erro, String host, int porta) {
+        if (erro instanceof ConnectException) {
+            return "Não foi possível conectar em " + host + ":" + porta
+                    + ". O servidor está rodando?";
+        }
+        if (erro instanceof UnknownHostException) {
+            return "Endereço \"" + host + "\" não encontrado.";
+        }
+        if (erro instanceof NotBoundException) {
+            return "Servidor encontrado, mas o serviço \"" + NOME_NO_REGISTRY
+                    + "\" não está registrado.";
+        }
+        if (erro instanceof RemoteException) {
+            return "Erro de comunicação: " + erro.getMessage();
+        }
+        return "Erro inesperado: " + erro.getMessage();
+    }
+
+    /** Trava/destrava o formulário enquanto a conexão está em andamento. */
+    private void setOcupado(boolean ocupado) {
+        botaoConectar.setDisable(ocupado);
+        campoHost.setDisable(ocupado);
+        campoPorta.setDisable(ocupado);
+        campoNome.setDisable(ocupado);
+        carregando.setVisible(ocupado);
+        if (ocupado) {
+            mostrarOk("Conectando...");
+        }
     }
 
     private void mostrarErro(String texto) {
