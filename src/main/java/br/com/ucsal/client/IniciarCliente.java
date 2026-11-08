@@ -1,6 +1,6 @@
-package br.com.ucsal.cliente;
+package br.com.ucsal.client;
 
-import br.com.ucsal.comum.BatalhaNavalServer;
+import br.com.ucsal.common.remote.BatalhaNavalServer;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;

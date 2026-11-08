@@ -1,4 +1,4 @@
-package br.com.ucsal.comum;
+package br.com.ucsal.common.model;
 
 public enum Direcao {
     HORIZONTAL,

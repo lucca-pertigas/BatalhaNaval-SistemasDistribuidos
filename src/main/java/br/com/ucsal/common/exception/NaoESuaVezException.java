@@ -1,4 +1,4 @@
-package br.com.ucsal.comum.exception;
+package br.com.ucsal.common.exception;
 
 public class NaoESuaVezException extends Exception {
     public NaoESuaVezException(String message) {

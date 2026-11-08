@@ -1,4 +1,4 @@
-package br.com.ucsal.comum;
+package br.com.ucsal.common.model;
 
 import java.io.Serializable;
 import java.util.Objects;
