@@ -3,6 +3,7 @@ package br.com.ucsal.server.domain;
 import br.com.ucsal.common.exception.JogadaInvalidaException;
 import br.com.ucsal.common.model.Direcao;
 import br.com.ucsal.common.model.Posicao;
+import br.com.ucsal.common.model.ResultadoTiro;
 import br.com.ucsal.common.model.TipoNavio;
 
 import java.util.ArrayList;
@@ -69,5 +70,54 @@ public class Tabuleiro {
         } else {
             return false;
         }
+    }
+
+    public ResultadoTiro receberTiro(Posicao posicao) throws JogadaInvalidaException {
+        int linha = posicao.getLinha();
+        int coluna = posicao.getColuna();
+
+        if (!estaDentroDoTabuleiro(linha, coluna) ) {
+            throw new JogadaInvalidaException("Tiro fora do tabuleiro");
+        }
+
+        if (gradeTiros[linha][coluna] == true) {
+            throw new JogadaInvalidaException("Essa casa já foi atacada");
+
+        }
+        gradeTiros[linha][coluna] = true;
+
+        TipoNavio navio = gradeNavios[linha][coluna];
+
+        if (navio == null) {
+            return ResultadoTiro.AGUA;
+        }
+
+        int restantes = casasRestantes.get(navio) - 1;
+        casasRestantes.put(navio, restantes);
+
+        if (restantes == 0) {
+            return ResultadoTiro.AFUNDOU;
+        } else {
+            return ResultadoTiro.ACERTOU;
+        }
+
+    }
+
+    public boolean frotaCompleta() {
+        if (casasRestantes.size() == TipoNavio.values().length) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean frotaAfundada() {
+        for (int barcosRestantes : casasRestantes.values()) {
+            if (barcosRestantes > 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
