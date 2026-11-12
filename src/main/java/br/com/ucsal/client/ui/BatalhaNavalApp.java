@@ -37,13 +37,13 @@ public class BatalhaNavalApp extends Application {
 
     @Override
     public void start(Stage palco) {
-        cena = new Scene(new TelaConexao(this).getRaiz(), 960, 640);
+               cena = new Scene(new TelaConexao(this).getRaiz(), 1100, 720);
         cena.getStylesheets().add(
                 getClass().getResource("estilo.css").toExternalForm());
 
         palco.setTitle("Batalha Naval");
-        palco.setMinWidth(720);
-        palco.setMinHeight(520);
+                palco.setMinWidth(960);
+        palco.setMinHeight(620);
         palco.setScene(cena);
         palco.show();
     }

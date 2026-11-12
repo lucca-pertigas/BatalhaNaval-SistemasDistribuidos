@@ -405,8 +405,8 @@ public class TelaPosicionamento implements OuvinteDoJogo {
             confirmar(navio);
         }
 
-        carregando.setVisible(false);
-        mostrarOk("Partida iniciada contra " + nomeAdversario + "!");
+                // Vai para a batalha levando o desenho da minha frota
+        app.mostrarTela(new TelaJogo(app, nomeAdversario, meusNavios).getRaiz());
         // Próxima etapa: app.mostrarTela(new TelaJogo(app, nomeAdversario, meusNavios).getRaiz());
     }
 

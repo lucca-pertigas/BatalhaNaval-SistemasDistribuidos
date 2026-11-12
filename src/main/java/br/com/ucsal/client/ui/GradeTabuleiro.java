@@ -27,7 +27,7 @@ import java.util.function.Consumer;
 public class GradeTabuleiro {
 
     private static final int N = BatalhaNavalApp.TAMANHO_TABULEIRO;
-    private static final double TAMANHO_CELULA = 34;
+    
 
     private final GridPane grade = new GridPane();
     private final StackPane[][] celulas = new StackPane[N][N];
@@ -45,7 +45,16 @@ public class GradeTabuleiro {
     private Runnable aoSair = () -> { };
     private Runnable aoClicarDireito = () -> { };
 
+        private final double tamanhoCelula;
+
+    /** Tabuleiro com células de 34px (tela de posicionamento). */
     public GradeTabuleiro() {
+        this(34);
+    }
+
+    /** Tabuleiro com células do tamanho indicado (a batalha usa menores: são 2 grades). */
+    public GradeTabuleiro(double tamanhoCelula) {
+        this.tamanhoCelula = tamanhoCelula;
         grade.getStyleClass().add("grade");
         grade.setHgap(3);
         grade.setVgap(3);
@@ -76,8 +85,8 @@ public class GradeTabuleiro {
 
         StackPane celula = new StackPane(simbolo);
         celula.getStyleClass().add("celula");
-        celula.setPrefSize(TAMANHO_CELULA, TAMANHO_CELULA);
-        celula.setMinSize(TAMANHO_CELULA, TAMANHO_CELULA);
+                celula.setPrefSize(tamanhoCelula, tamanhoCelula);
+        celula.setMinSize(tamanhoCelula, tamanhoCelula);
 
         // Cada célula "lembra" a própria posição (variável capturada pela lambda)
         Posicao posicao = new Posicao(linha, coluna);

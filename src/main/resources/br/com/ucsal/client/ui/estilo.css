@@ -238,3 +238,50 @@
 .botao-secundario:disabled {
     -fx-opacity: 0.4;
 }
+/* =========================================================
+   Tela da batalha
+   ========================================================= */
+
+/* Faixa de status: de quem é a vez */
+.status {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 18;
+    -fx-background-radius: 10;
+}
+
+.status-vez {
+    -fx-background-color: -cor-destaque;
+    -fx-text-fill: #04203a;
+}
+
+.status-espera {
+    -fx-background-color: rgba(143, 179, 222, 0.15);
+    -fx-text-fill: -cor-texto-suave;
+}
+
+.status-erro {
+    -fx-background-color: rgba(255, 107, 107, 0.18);
+    -fx-text-fill: -cor-erro;
+}
+
+/* Cartão com menos espaço interno (cabem 2 tabuleiros) */
+.cartao.cartao-compacto {
+    -fx-padding: 16 20;
+}
+
+.linha-historico {
+    -fx-text-fill: -cor-texto-suave;
+    -fx-font-size: 13px;
+}
+
+/* Fim de jogo: escurece a tela e mostra o cartão por cima */
+.camada-escura {
+    -fx-background-color: rgba(2, 8, 20, 0.78);
+}
+
+.titulo-fim {
+    -fx-font-size: 40px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -cor-destaque;
+}
