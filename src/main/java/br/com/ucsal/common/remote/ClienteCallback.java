@@ -9,7 +9,7 @@ import java.rmi.RemoteException;
 
 public interface ClienteCallback extends Remote {
 
-    void pastidaIniciada(String nomeAdversario) throws RemoteException;
+    void partidaIniciada(String nomeAdversario) throws RemoteException;
 
     void suaVez() throws RemoteException;
 
