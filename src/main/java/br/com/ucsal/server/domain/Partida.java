@@ -55,7 +55,7 @@ public class Partida {
     public synchronized ResultadoTiro atirar(int id, Posicao alvo) throws NaoESuaVezException,
             JogadaInvalidaException, PartidaIndisponivelException {
         if (fase != FasePartida.EM_JOGO) {
-            throw new NaoESuaVezException("A partida não está em andamento");
+            throw new PartidaIndisponivelException("A partida não está em andamento");
         }
 
         if(id != deQuemVez){
