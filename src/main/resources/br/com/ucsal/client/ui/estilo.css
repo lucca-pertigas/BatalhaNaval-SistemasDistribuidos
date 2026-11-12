@@ -107,3 +107,134 @@
 .progress-indicator {
     -fx-progress-color: -cor-destaque;
 }
+/* =========================================================
+   Tabuleiro, lista de navios e botões secundários
+   ========================================================= */
+
+.titulo-secao {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.dica {
+    -fx-text-fill: #6f8fb8;
+    -fx-font-size: 12px;
+}
+
+.mensagem-info {
+    -fx-text-fill: -cor-texto-suave;
+}
+
+/* Letras A-J e números 1-10 */
+.coordenada {
+    -fx-text-fill: -cor-texto-suave;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-min-width: 18;
+    -fx-alignment: center;
+}
+
+/* Célula vazia */
+.celula {
+    -fx-background-color: #0d3563;
+    -fx-background-radius: 4;
+    -fx-border-color: #1f4f86;
+    -fx-border-radius: 4;
+}
+
+/* Hover só quando a grade está clicável (vez de jogar / posicionando) */
+.grade-clicavel .celula {
+    -fx-cursor: hand;
+}
+
+.grade-clicavel .celula:hover {
+    -fx-background-color: #145087;
+}
+
+/* Estados fixos. ".grade .celula.x" é mais específico que o hover,
+   e por isso uma célula já marcada não muda de cor ao passar o mouse. */
+.grade .celula.navio {
+    -fx-background-color: #7d8ea3;
+    -fx-border-color: #b8c6d6;
+}
+
+.grade .celula.agua {
+    -fx-background-color: #0a2a4f;
+}
+
+.grade .celula.acerto {
+    -fx-background-color: #c0392b;
+    -fx-border-color: #ff8a65;
+}
+
+.grade .celula.afundado {
+    -fx-background-color: #5c1a12;
+    -fx-border-color: #ff6b6b;
+}
+
+/* Prévia de posicionamento: vem por último para ganhar de tudo */
+.grade .celula.previa-ok {
+    -fx-background-color: rgba(46, 204, 113, 0.75);
+    -fx-border-color: #2ecc71;
+}
+
+.grade .celula.previa-erro {
+    -fx-background-color: rgba(255, 107, 107, 0.65);
+    -fx-border-color: #ff6b6b;
+}
+
+/* Símbolo dentro da célula (• água, ✕ acerto) */
+.simbolo {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.agua .simbolo {
+    -fx-text-fill: #8fb3de;
+}
+
+.acerto .simbolo,
+.afundado .simbolo {
+    -fx-text-fill: #ffffff;
+}
+
+/* Itens da lista de navios */
+.item-navio {
+    -fx-background-color: #0a1f3f;
+    -fx-text-fill: -cor-texto;
+    -fx-border-color: -cor-borda;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8 12;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.item-navio:selected {
+    -fx-background-color: #0e3a66;
+    -fx-border-color: -cor-destaque;
+}
+
+.item-navio:disabled {
+    -fx-opacity: 0.55;
+}
+
+/* Botão com contorno (ações secundárias) */
+.botao-secundario {
+    -fx-background-color: transparent;
+    -fx-text-fill: -cor-destaque;
+    -fx-border-color: -cor-destaque;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8 0;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.botao-secundario:hover {
+    -fx-background-color: rgba(34, 195, 238, 0.12);
+}
+
+.botao-secundario:disabled {
+    -fx-opacity: 0.4;
+}

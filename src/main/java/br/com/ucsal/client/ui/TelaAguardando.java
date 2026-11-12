@@ -83,13 +83,10 @@ public class TelaAguardando {
             }
         };
 
-        tarefa.setOnSucceeded(e -> {
-            int id = tarefa.getValue();
-            app.setIdJogador(id);
-            carregando.setVisible(false);
-            titulo.setText("Você está na partida!");
-            info.setText("Olá, " + nome + ". Você é o jogador " + (id + 1) + ".");
-            // Próxima etapa: app.mostrarTela(new TelaPosicionamento(app).getRaiz());
+                tarefa.setOnSucceeded(e -> {
+            app.setIdJogador(tarefa.getValue());
+            // Entrou: vai direto posicionar a frota
+            app.mostrarTela(new TelaPosicionamento(app).getRaiz());
         });
 
         tarefa.setOnFailed(e -> mostrarErro(traduzirErro(tarefa.getException())));
