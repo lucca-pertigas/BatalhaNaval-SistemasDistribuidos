@@ -1,7 +1,6 @@
 package br.com.ucsal.client.ui;
 
-import br.com.ucsal.client.ClienteCallbackImpl;
-import br.com.ucsal.client.EventosDoJogo;
+import br.com.ucsal.client.remote.ClienteCallbackImpl;
 import br.com.ucsal.common.exception.PartidaIndisponivelException;
 import br.com.ucsal.common.remote.BatalhaNavalServer;
 import javafx.concurrent.Task;
@@ -16,12 +15,10 @@ import javafx.scene.layout.VBox;
 import java.rmi.RemoteException;
 
 /**
- * Tela 2: entra na partida e espera o adversário.
- *
- * implements EventosDoJogo -> esta tela é o "ouvinte" do callback
- * enquanto estiver aberta.
+ * Tela 2: cria o callback e chama entrarNaPartida.
+ * Deu certo -> (próxima etapa) vai para o posicionamento dos navios.
  */
-public class TelaAguardando implements EventosDoJogo {
+public class TelaAguardando {
 
     private final BatalhaNavalApp app;
     private final StackPane raiz = new StackPane();
@@ -30,10 +27,6 @@ public class TelaAguardando implements EventosDoJogo {
     private final Label info = new Label();
     private final ProgressIndicator carregando = new ProgressIndicator();
     private final Button botaoVoltar = new Button("Voltar");
-
-    // O aviso do servidor pode chegar ANTES da resposta do entrarNaPartida
-    // (ver comentário em entrarNaPartida). Esta flag evita sobrescrever a tela.
-    private boolean adversarioChegou = false;
 
     public TelaAguardando(BatalhaNavalApp app) {
         this.app = app;
@@ -45,10 +38,6 @@ public class TelaAguardando implements EventosDoJogo {
         return raiz;
     }
 
-    // ------------------------------------------------------------------
-    // Layout
-    // ------------------------------------------------------------------
-
     private void montarLayout() {
         titulo.getStyleClass().add("titulo");
         info.getStyleClass().add("subtitulo");
@@ -59,10 +48,8 @@ public class TelaAguardando implements EventosDoJogo {
         botaoVoltar.getStyleClass().add("botao-primario");
         botaoVoltar.setMaxWidth(Double.MAX_VALUE);
         botaoVoltar.setOnAction(e -> voltar());
-        // Escondido até acontecer um erro.
-        // setManaged(false) = além de invisível, não ocupa espaço no layout.
-        botaoVoltar.setVisible(false);
-        botaoVoltar.setManaged(false);
+        botaoVoltar.setVisible(false);  // só aparece se der erro
+        botaoVoltar.setManaged(false);  // e, escondido, não ocupa espaço
 
         VBox cartao = new VBox(20, titulo, info, carregando, botaoVoltar);
         cartao.setAlignment(Pos.CENTER);
@@ -73,26 +60,22 @@ public class TelaAguardando implements EventosDoJogo {
         raiz.getChildren().add(cartao);
     }
 
-    // ------------------------------------------------------------------
-    // Chamada remota: entrarNaPartida
-    // ------------------------------------------------------------------
-
     private void entrarNaPartida() {
-        // 1) Cria e exporta o callback (rápido, é local: só abre uma porta)
+        // 1) Cria o callback DA DUPLA, entregando o nosso OuvinteFX.
+        //    O construtor exporta o objeto (abre uma porta para o servidor chamar).
         ClienteCallbackImpl callback;
         try {
-            callback = new ClienteCallbackImpl();
+            callback = new ClienteCallbackImpl(app.getOuvinteFX());
         } catch (RemoteException e) {
             mostrarErro("Não foi possível preparar o recebimento de avisos: " + e.getMessage());
             return;
         }
-        callback.setOuvinte(this); // esta tela passa a receber os avisos
         app.setCallback(callback);
 
         BatalhaNavalServer servidor = app.getServidor();
         String nome = app.getNomeJogador();
 
-        // 2) Chamada remota em outra thread (mesmo motivo do lookup)
+        // 2) Chamada remota fora da thread do JavaFX
         Task<Integer> tarefa = new Task<>() {
             @Override
             protected Integer call() throws Exception {
@@ -100,18 +83,13 @@ public class TelaAguardando implements EventosDoJogo {
             }
         };
 
-        /*
-         * Detalhe de concorrência: se você for o 2º jogador, o servidor pode
-         * chamar pastidaIniciada() ENQUANTO entrarNaPartida ainda não voltou.
-         * Os dois eventos entram na fila da thread do JavaFX, e o aviso pode
-         * ser processado antes deste setOnSucceeded. Por isso usamos a flag.
-         */
         tarefa.setOnSucceeded(e -> {
-            app.setIdJogador(tarefa.getValue());
-            if (!adversarioChegou) {
-                titulo.setText("Você está na partida!");
-                info.setText("Olá, " + nome + ". Aguardando adversário...");
-            }
+            int id = tarefa.getValue();
+            app.setIdJogador(id);
+            carregando.setVisible(false);
+            titulo.setText("Você está na partida!");
+            info.setText("Olá, " + nome + ". Você é o jogador " + (id + 1) + ".");
+            // Próxima etapa: app.mostrarTela(new TelaPosicionamento(app).getRaiz());
         });
 
         tarefa.setOnFailed(e -> mostrarErro(traduzirErro(tarefa.getException())));
@@ -123,31 +101,14 @@ public class TelaAguardando implements EventosDoJogo {
 
     private String traduzirErro(Throwable erro) {
         if (erro instanceof PartidaIndisponivelException) {
-            // Exceção de negócio do backend (ex.: partida cheia)
-            return "Partida indisponível: " + erro.getMessage();
+            // Exceção de negócio do backend (ex.: "A partida ja esta cheia !")
+            return erro.getMessage();
         }
         if (erro instanceof RemoteException) {
             return "Erro de comunicação com o servidor: " + erro.getMessage();
         }
         return "Erro inesperado: " + erro.getMessage();
     }
-
-    // ------------------------------------------------------------------
-    // Avisos do servidor (EventosDoJogo) — já chegam na thread do JavaFX
-    // ------------------------------------------------------------------
-
-    @Override
-    public void partidaIniciada(String nomeAdversario) {
-        adversarioChegou = true;
-        carregando.setVisible(false);
-        titulo.setText("Adversário encontrado!");
-        info.setText(app.getNomeJogador() + " vs " + nomeAdversario + "\nPrepare sua frota...");
-        // Próxima etapa: app.mostrarTela(new TelaPosicionamento(app).getRaiz());
-    }
-
-    // ------------------------------------------------------------------
-    // Erro / voltar
-    // ------------------------------------------------------------------
 
     private void mostrarErro(String texto) {
         carregando.setVisible(false);

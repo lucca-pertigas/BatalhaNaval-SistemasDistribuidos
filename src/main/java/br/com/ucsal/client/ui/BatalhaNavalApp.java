@@ -1,6 +1,7 @@
 package br.com.ucsal.client.ui;
 
-import br.com.ucsal.client.ClienteCallbackImpl;
+import br.com.ucsal.client.OuvinteDoJogo;
+import br.com.ucsal.client.remote.ClienteCallbackImpl;
 import br.com.ucsal.common.remote.BatalhaNavalServer;
 import javafx.application.Application;
 import javafx.scene.Parent;
@@ -17,16 +18,22 @@ import java.rmi.server.UnicastRemoteObject;
  * trocamos só a raiz da cena.
  *
  * Guarda o estado compartilhado entre as telas:
- * stub do servidor, nome, id do jogador e o callback.
+ * stub do servidor, nome, id do jogador, callback e o OuvinteFX.
  */
 public class BatalhaNavalApp extends Application {
+
+    public static final int TAMANHO_TABULEIRO = 10; // igual ao Tabuleiro do servidor
 
     private Scene cena;
 
     private BatalhaNavalServer servidor;     // stub: representa o servidor remoto
     private String nomeJogador;
     private int idJogador = -1;              // devolvido por entrarNaPartida
-    private ClienteCallbackImpl callback;    // objeto que o servidor chama
+    private ClienteCallbackImpl callback;    // objeto remoto que o servidor chama
+
+    // Um único adaptador para a aplicação toda: ele repassa os avisos
+    // do callback para a tela que estiver aberta.
+    private final OuvinteFX ouvinteFX = new OuvinteFX();
 
     @Override
     public void start(Stage palco) {
@@ -42,9 +49,9 @@ public class BatalhaNavalApp extends Application {
     }
 
     /**
-     * Chamado pelo JavaFX quando a janela é fechada.
-     * O callback exportado mantém threads do RMI vivas: sem isso,
-     * o processo continuaria rodando "invisível" depois de fechar a janela.
+     * Chamado pelo JavaFX quando a janela fecha.
+     * O callback exportado mantém threads do RMI vivas: sem isso, o
+     * processo continuaria rodando invisível depois de fechar a janela.
      */
     @Override
     public void stop() {
@@ -57,8 +64,14 @@ public class BatalhaNavalApp extends Application {
         cena.setRoot(raiz);
     }
 
+    /** A tela que acabou de abrir passa a receber os avisos do servidor. */
+    public void ouvirAvisos(OuvinteDoJogo tela) {
+        ouvinteFX.setTelaAtual(tela);
+    }
+
     /** Para de receber chamadas do servidor (desexporta o objeto remoto). */
     public void liberarCallback() {
+        ouvinteFX.setTelaAtual(null);
         if (callback != null) {
             try {
                 UnicastRemoteObject.unexportObject(callback, true);
@@ -68,6 +81,8 @@ public class BatalhaNavalApp extends Application {
             callback = null;
         }
     }
+
+    public OuvinteFX getOuvinteFX() { return ouvinteFX; }
 
     public BatalhaNavalServer getServidor() { return servidor; }
     public void setServidor(BatalhaNavalServer servidor) { this.servidor = servidor; }
