@@ -4,10 +4,7 @@ import br.com.ucsal.client.remote.ClienteCallbackImpl;
 import br.com.ucsal.common.exception.JogadaInvalidaException;
 import br.com.ucsal.common.exception.NaoESuaVezException;
 import br.com.ucsal.common.exception.PartidaIndisponivelException;
-import br.com.ucsal.common.model.Direcao;
-import br.com.ucsal.common.model.Posicao;
-import br.com.ucsal.common.model.ResultadoTiro;
-import br.com.ucsal.common.model.TipoNavio;
+import br.com.ucsal.common.model.*;
 import br.com.ucsal.common.remote.BatalhaNavalServer;
 import br.com.ucsal.common.remote.ClienteCallback;
 
@@ -26,13 +23,30 @@ public class IniciarCliente {
         System.out.println("Digite seu nome: ");
         String nome = sc.nextLine();
 
-        ClienteCallback callback = new ClienteCallbackImpl();
+        ClienteCallback callback = new ClienteCallbackImpl(new OuvinteDoJogo() {
+            @Override
+            public void partidaIniciada(String nomeAdversario) {
+                System.out.println("A partida começou! Seu adversário é " + nomeAdversario);
+            }
+
+            @Override
+            public void suaVez() {
+                System.out.println("É a sua vez! Digite linha e coluna:");
+            }
+
+            @Override
+            public void tiroRecebido(Posicao posicao, ResultadoTiro resultadoTiro) {
+                System.out.println("O adversário atirou em  + posicao + :  + resultadoTiro");
+            }
+
+            @Override
+            public void fimDeJogo(String nomeVencedor, MotivoFim motivoFim) {
+                System.out.println("Fim de jogo! Vencedor: " + nomeVencedor + " (" + motivoFim + ")");
+            }
+        });
 
         int id = servidor.entrarNaPartida(nome, callback);
         System.out.println("Você entrou como jogador " + id);
-
-        System.out.println("Aperte Enter quando o adversário tiver entrado...");
-        sc.nextLine();
 
         int linhaNavio = 0;
         for (TipoNavio tipo : TipoNavio.values()) {

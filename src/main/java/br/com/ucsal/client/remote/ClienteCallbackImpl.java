@@ -1,5 +1,6 @@
 package br.com.ucsal.client.remote;
 
+import br.com.ucsal.client.OuvinteDoJogo;
 import br.com.ucsal.common.model.MotivoFim;
 import br.com.ucsal.common.model.Posicao;
 import br.com.ucsal.common.model.ResultadoTiro;
@@ -9,27 +10,30 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 public class ClienteCallbackImpl extends UnicastRemoteObject implements ClienteCallback {
-    public ClienteCallbackImpl() throws RemoteException {
+    private final OuvinteDoJogo ouvinte;
+
+    public ClienteCallbackImpl(OuvinteDoJogo ouvinte) throws RemoteException {
         super();
+        this.ouvinte = ouvinte;
     }
 
     @Override
     public void partidaIniciada(String nomeAdversario) throws RemoteException {
-        System.out.println("A partida começou! Seu adversário é " + nomeAdversario);
+        ouvinte.partidaIniciada(nomeAdversario);
     }
 
     @Override
     public void suaVez() throws RemoteException {
-        System.out.println("Sua vez de jogar");
+        ouvinte.suaVez();
     }
 
     @Override
     public void tiroRecebido(Posicao posicao, ResultadoTiro resultadoTiro) throws RemoteException {
-        System.out.println("O adversário atirou em " + posicao + ": " + resultadoTiro);
+        ouvinte.tiroRecebido(posicao, resultadoTiro);
     }
 
     @Override
     public void fimDeJogo(String nomeVencedor, MotivoFim motivoFim) throws RemoteException {
-        System.out.println("Fim de jogo! Vencedor: " + nomeVencedor + " (" + motivoFim + ")");
+        ouvinte.fimDeJogo(nomeVencedor, motivoFim);
     }
 }

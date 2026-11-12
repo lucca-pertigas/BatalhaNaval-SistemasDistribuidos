@@ -37,13 +37,13 @@ public class Partida {
 
     public synchronized boolean posicionarNavio(int id, TipoNavio tipoNavio, Posicao inicial, Direcao direcao)
     throws JogadaInvalidaException, PartidaIndisponivelException {
-        if (fase != FasePartida.POSICIONANDO) {
+        if (fase == FasePartida.EM_JOGO || fase == FasePartida.ENCERRADA) {
             throw new PartidaIndisponivelException("Não é permitido posicionar embarcação agora !");
         }
 
         tabuleiros.get(id).posicionarNavio(tipoNavio, inicial, direcao);
 
-        if(tabuleiros.get(0).frotaCompleta() && tabuleiros.get(1).frotaCompleta()) {
+        if (nomes.size() == 2 && tabuleiros.get(0).frotaCompleta() && tabuleiros.get(1).frotaCompleta()) {
             fase = FasePartida.EM_JOGO;
             deQuemVez = new Random().nextInt(2);
             return true;
