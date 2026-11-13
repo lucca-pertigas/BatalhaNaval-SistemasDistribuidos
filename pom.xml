@@ -12,6 +12,32 @@
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Versão do JavaFX: acompanha a versão do JDK (25) -->
+        <javafx.version>25</javafx.version>
     </properties>
+
+    <dependencies>
+        <!-- JavaFX não vem mais dentro do JDK: entra como dependência.
+             "controls" já traz junto o javafx-base e o javafx-graphics. -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Permite rodar o cliente com: mvn javafx:run -->
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>br.com.ucsal.client.ui.BatalhaNavalApp</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
