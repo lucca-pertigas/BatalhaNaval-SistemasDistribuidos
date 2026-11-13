@@ -11,72 +11,58 @@ import javafx.stage.Stage;
 import java.rmi.NoSuchObjectException;
 import java.rmi.server.UnicastRemoteObject;
 
-/**
- * Aplicação JavaFX do cliente.
- *
- * Uma janela (Stage), uma cena (Scene). Para trocar de tela,
- * trocamos só a raiz da cena.
- *
- * Guarda o estado compartilhado entre as telas:
- * stub do servidor, nome, id do jogador, callback e o OuvinteFX.
- */
 public class BatalhaNavalApp extends Application {
 
-    public static final int TAMANHO_TABULEIRO = 10; // igual ao Tabuleiro do servidor
+    public static final int TAMANHO_TABULEIRO = 10;
 
     private Scene cena;
 
-    private BatalhaNavalServer servidor;     // stub: representa o servidor remoto
+    private BatalhaNavalServer servidor;
     private String nomeJogador;
-    private int idJogador = -1;              // devolvido por entrarNaPartida
-    private ClienteCallbackImpl callback;    // objeto remoto que o servidor chama
+    private int idJogador = -1;
+    private ClienteCallbackImpl callback;
 
-    // Um único adaptador para a aplicação toda: ele repassa os avisos
-    // do callback para a tela que estiver aberta.
     private final OuvinteFX ouvinteFX = new OuvinteFX();
 
     @Override
     public void start(Stage palco) {
-               cena = new Scene(new TelaConexao(this).getRaiz(), 1100, 720);
+        cena = new Scene(new TelaConexao(this).getRaiz(), 1100, 720);
         cena.getStylesheets().add(
                 getClass().getResource("estilo.css").toExternalForm());
 
         palco.setTitle("Batalha Naval");
-                palco.setMinWidth(960);
+        palco.setMinWidth(960);
         palco.setMinHeight(620);
         palco.setScene(cena);
         palco.show();
     }
 
-    /**
-     * Chamado pelo JavaFX quando a janela fecha.
-     * O callback exportado mantém threads do RMI vivas: sem isso, o
-     * processo continuaria rodando invisível depois de fechar a janela.
-     */
     @Override
     public void stop() {
+        if (servidor != null && callback != null && idJogador >= 0) {
+            try {
+                servidor.sairDaPartida(idJogador, callback);
+            } catch (Exception ignorado) {
+            }
+        }
         liberarCallback();
         System.exit(0);
     }
 
-    /** Troca a tela exibida na janela. */
     public void mostrarTela(Parent raiz) {
         cena.setRoot(raiz);
     }
 
-    /** A tela que acabou de abrir passa a receber os avisos do servidor. */
     public void ouvirAvisos(OuvinteDoJogo tela) {
         ouvinteFX.setTelaAtual(tela);
     }
 
-    /** Para de receber chamadas do servidor (desexporta o objeto remoto). */
     public void liberarCallback() {
         ouvinteFX.setTelaAtual(null);
         if (callback != null) {
             try {
                 UnicastRemoteObject.unexportObject(callback, true);
             } catch (NoSuchObjectException ignorado) {
-                // já não estava exportado: nada a fazer
             }
             callback = null;
         }

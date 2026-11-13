@@ -36,4 +36,8 @@ public class ClienteCallbackImpl extends UnicastRemoteObject implements ClienteC
     public void fimDeJogo(String nomeVencedor, MotivoFim motivoFim) throws RemoteException {
         ouvinte.fimDeJogo(nomeVencedor, motivoFim);
     }
+
+    @Override
+    public void ping() throws RemoteException {
+    }
 }

@@ -36,7 +36,7 @@ public class Partida {
     }
 
     public synchronized boolean posicionarNavio(int id, TipoNavio tipoNavio, Posicao inicial, Direcao direcao)
-    throws JogadaInvalidaException, PartidaIndisponivelException {
+            throws JogadaInvalidaException, PartidaIndisponivelException {
         if (fase == FasePartida.EM_JOGO || fase == FasePartida.ENCERRADA) {
             throw new PartidaIndisponivelException("Não é permitido posicionar embarcação agora !");
         }
@@ -88,5 +88,13 @@ public class Partida {
 
     public synchronized boolean isEmJogo() {
         return fase == FasePartida.EM_JOGO;
+    }
+
+    public synchronized void encerrarPorDesconexao() {
+        fase = FasePartida.ENCERRADA;
+    }
+
+    public synchronized int getQuantidadeJogadores() {
+        return nomes.size();
     }
 }

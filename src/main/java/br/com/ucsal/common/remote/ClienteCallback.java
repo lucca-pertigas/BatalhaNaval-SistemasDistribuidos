@@ -16,4 +16,6 @@ public interface ClienteCallback extends Remote {
     void tiroRecebido(Posicao posicao, ResultadoTiro resultadoTiro) throws RemoteException;
 
     void fimDeJogo(String nomeVencedor, MotivoFim motivoFim) throws RemoteException;
+
+    void ping() throws RemoteException;
 }

@@ -133,7 +133,7 @@ public class TelaJogo implements OuvinteDoJogo {
         textoFim.getStyleClass().add("subtitulo");
         textoFim.setWrapText(true);
 
-        Label nota = new Label("Para uma nova partida, o servidor precisa ser reiniciado.");
+        Label nota = new Label("Clique abaixo para reniciar o jogo");
         nota.getStyleClass().add("dica");
         nota.setWrapText(true);
 
@@ -163,9 +163,6 @@ public class TelaJogo implements OuvinteDoJogo {
         }
     }
 
-    // ------------------------------------------------------------------
-    // Meu tiro: chamada remota fazerJogada
-    // ------------------------------------------------------------------
 
     private void atirar(Posicao alvo) {
         if (!minhaVez || aguardandoResposta || terminou) {

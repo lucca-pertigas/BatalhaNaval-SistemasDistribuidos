@@ -12,13 +12,18 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-public class BatalhaNavalServerImpl extends UnicastRemoteObject implements BatalhaNavalServer{
-    private final Partida partida = new Partida();
+public class BatalhaNavalServerImpl extends UnicastRemoteObject implements BatalhaNavalServer {
+    private volatile Partida partida = new Partida();
     private final Map<Integer, ClienteCallback> callbacks = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService batimentos = Executors.newSingleThreadScheduledExecutor();
 
     public BatalhaNavalServerImpl() throws RemoteException {
         super();
+        batimentos.scheduleAtFixedRate(this::verificarJogadores, 2, 2, TimeUnit.SECONDS);
     }
 
     @Override
@@ -28,8 +33,12 @@ public class BatalhaNavalServerImpl extends UnicastRemoteObject implements Batal
     }
 
     @Override
-    public int entrarNaPartida(String nome, ClienteCallback clienteCallback) throws
+    public synchronized int entrarNaPartida(String nome, ClienteCallback clienteCallback) throws
             RemoteException, PartidaIndisponivelException {
+        if (partida.isEncerrada()) {
+            partida = new Partida();
+            callbacks.clear();
+        }
         int id = partida.entrarNaPartida(nome);
         callbacks.put(id, clienteCallback);
         return id;
@@ -56,7 +65,7 @@ public class BatalhaNavalServerImpl extends UnicastRemoteObject implements Batal
 
         callbacks.get(adversario).tiroRecebido(tiro, resultado);
 
-        if(partida.isEncerrada()) {
+        if (partida.isEncerrada()) {
             callbacks.get(0).fimDeJogo(partida.getNome(id), MotivoFim.AFUNDOU_EMBARCACOES);
             callbacks.get(1).fimDeJogo(partida.getNome(id), MotivoFim.AFUNDOU_EMBARCACOES);
         } else {
@@ -64,5 +73,48 @@ public class BatalhaNavalServerImpl extends UnicastRemoteObject implements Batal
         }
 
         return resultado;
+    }
+
+    @Override
+    public void sairDaPartida(int id, ClienteCallback clienteCallback) throws RemoteException {
+        tratarDesconexao(id, clienteCallback);
+    }
+
+    private synchronized void tratarDesconexao(int idQueSaiu, ClienteCallback quemSaiu) {
+        if (!quemSaiu.equals(callbacks.get(idQueSaiu)) || partida.isEncerrada()) {
+            return;
+        }
+
+        if (partida.getQuantidadeJogadores() < 2) {
+            partida = new Partida();
+            callbacks.clear();
+            return;
+        }
+
+        partida.encerrarPorDesconexao();
+        callbacks.remove(idQueSaiu);
+
+        int outro = 1 - idQueSaiu;
+        ClienteCallback adversario = callbacks.get(outro);
+        if (adversario != null) {
+            try {
+                adversario.fimDeJogo(partida.getNome(outro), MotivoFim.JOGADOR_DESCONECTADO);
+            } catch (RemoteException e) {
+            }
+        }
+    }
+
+    private void verificarJogadores() {
+        try {
+            for (Map.Entry<Integer, ClienteCallback> entrada : callbacks.entrySet()) {
+                try {
+                    entrada.getValue().ping();
+                } catch (RemoteException e) {
+                    tratarDesconexao(entrada.getKey(), entrada.getValue());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

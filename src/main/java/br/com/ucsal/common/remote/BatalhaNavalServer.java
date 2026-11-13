@@ -22,4 +22,6 @@ public interface BatalhaNavalServer extends Remote {
 
     ResultadoTiro fazerJogada(int id, Posicao tiro) throws RemoteException,
             JogadaInvalidaException, NaoESuaVezException, PartidaIndisponivelException;
+
+    void sairDaPartida(int id, ClienteCallback clienteCallback) throws RemoteException;
 }
